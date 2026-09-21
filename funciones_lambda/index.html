@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartShop Cloud</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        header {
+            background: #232f3e;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .login {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #ff9900;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #e68a00;
+        }
+
+        .catalogo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .producto {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .icono {
+            font-size: 60px;
+        }
+
+        .precio {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .cantidad {
+            width: 70px;
+        }
+
+        .resumen {
+            background: white;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #tienda {
+            display: none;
+        }
+
+        #mensajeLogin,
+        #mensajePedido {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .usuario {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>SmartShop Cloud</h1>
+    <p>Tienda tecnológica serverless en AWS</p>
+</header>
+
+<div class="contenedor">
+
+    <!-- LOGIN -->
+
+    <section id="login" class="login">
+
+        <h2>Iniciar sesión</h2>
+
+        <input
+            type="text"
+            id="usuario"
+            placeholder="Usuario"
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Contraseña"
+        >
+
+        <button onclick="iniciarSesion()">
+            Ingresar
+        </button>
+
+        <div id="mensajeLogin"></div>
+
+    </section>
+
+
+    <!-- TIENDA -->
+
+    <section id="tienda">
+
+        <div class="usuario">
+
+            <h2 id="bienvenida"></h2>
+
+            <button onclick="cerrarSesion()">
+                Cerrar sesión
+            </button>
+
+        </div>
+
+        <h2>Productos</h2>
+
+        <div id="catalogo" class="catalogo"></div>
+
+
+        <!-- RESUMEN -->
+
+        <div class="resumen">
+
+            <h2>Resumen del pedido</h2>
+
+            <p>
+                Total:
+                <strong id="total">$0</strong>
+            </p>
+
+            <button onclick="realizarPedido()">
+                Realizar pedido
+            </button>
+
+            <div id="mensajePedido"></div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+    // REEMPLAZAR POR TU URL REAL DE API GATEWAY
+    const API_URL =
+        "https://1gc3kixuq5.execute-api.us-east-1.amazonaws.com";
+
+
+    let usuarioActual = null;
+
+
+    // PRODUCTOS ESTÁTICOS
+
+    const productos = [
+
+        {
+            nombre: "Notebook Gamer",
+            precio: 699990,
+            icono: "💻"
+        },
+
+        {
+            nombre: "Mouse Gamer",
+            precio: 24990,
+            icono: "🖱️"
+        },
+
+        {
+            nombre: "Tablet",
+            precio: 299990,
+            icono: "📱"
+        },
+
+        {
+            nombre: "Teclado Mecánico",
+            precio: 49990,
+            icono: "⌨️"
+        },
+
+        {
+            nombre: "Monitor 24 pulgadas",
+            precio: 159990,
+            icono: "🖥️"
+        },
+
+        {
+            nombre: "Audífonos Gamer",
+            precio: 39990,
+            icono: "🎧"
+        }
+
+    ];
+
+
+    // MOSTRAR PRODUCTOS
+
+    function cargarProductos() {
+
+        const catalogo =
+            document.getElementById("catalogo");
+
+        catalogo.innerHTML = "";
+
+        productos.forEach((producto, index) => {
+
+            catalogo.innerHTML += `
+
+                <div class="producto">
+
+                    <div class="icono">
+                        ${producto.icono}
+                    </div>
+
+                    <h3>
+                        ${producto.nombre}
+                    </h3>
+
+                    <p class="precio">
+                        ${formatearPrecio(producto.precio)}
+                    </p>
+
+                    <label>
+
+                        <input
+                            type="checkbox"
+                            id="check-${index}"
+                            onchange="calcularTotal()"
+                        >
+
+                        Seleccionar
+
+                    </label>
+
+                    <br><br>
+
+                    Cantidad:
+
+                    <input
+                        class="cantidad"
+                        type="number"
+                        id="cantidad-${index}"
+                        value="1"
+                        min="1"
+                        onchange="calcularTotal()"
+                    >
+
+                </div>
+            `;
+
+        });
+
+    }
+
+
+    // LOGIN
+
+    async function iniciarSesion() {
+
+        const usuario =
+            document.getElementById("usuario").value;
+
+        const password =
+            document.getElementById("password").value;
+
+        const mensaje =
+            document.getElementById("mensajeLogin");
+
+        mensaje.textContent = "Validando...";
+
+        try {
+
+            const respuesta = await fetch(
+                API_URL + "/usuarios",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        usuario: usuario,
+                        password: password
+                    })
+                }
+            );
+
+            const datos =
+                await respuesta.json();
+
+            if (!respuesta.ok) {
+
+                mensaje.textContent =
+                    datos.mensaje;
+
+                return;
+            }
+
+            usuarioActual =
+                datos.usuario;
+
+            mensaje.textContent = "";
+
+            document.getElementById("login")
+                .style.display = "none";
+
+            document.getElementById("tienda")
+                .style.display = "block";
+
+            document.getElementById("bienvenida")
+                .textContent =
+                "Bienvenido, " +
+                usuarioActual.nombre;
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            mensaje.textContent =
+                "Error al conectar con la API";
+        }
+
+    }
+
+
+    // CALCULAR TOTAL VISUAL
+
+    function calcularTotal() {
+
+        let total = 0;
+
+        productos.forEach((producto, index) => {
+
+            const seleccionado =
+                document.getElementById(
+                    `check-${index}`
+                ).checked;
+
+            if (seleccionado) {
+
+                const cantidad =
+                    Number(
+                        document.getElementById(
+                            `cantidad-${index}`
+                        ).value
+                    );
+
+                total +=
+                    producto.precio * cantidad;
+
+            }
+
+        });
+
+        document.getElementById("total")
+            .textContent =
+            formatearPrecio(total);
+
+    }
+
+
+    // CREAR PEDIDO
+
+    async function realizarPedido() {
+
+        const productosSeleccionados = [];
+
+        productos.forEach((producto, index) => {
+
+            const seleccionado =
+                document.getElementById(
+                    `check-${index}`
+                ).checked;
+
+            if (seleccionado) {
+
+                const cantidad =
+                    Number(
+                        document.getElementById(
+                            `cantidad-${index}`
+                        ).value
+                    );
+
+                productosSeleccionados.push({
+
+                    producto:
+                        producto.nombre,
+
+                    cantidad:
+                        cantidad,
+
+                    precio:
+                        producto.precio
+
+                });
+
+            }
+
+        });
+
+
+        if (productosSeleccionados.length === 0) {
+
+            document.getElementById(
+                "mensajePedido"
+            ).textContent =
+                "Debe seleccionar al menos un producto";
+
+            return;
+        }
+
+
+        // ID único simple para el laboratorio
+
+        const orderId =
+            "ORD-" + Date.now();
+
+
+        const pedido = {
+
+            orderId: orderId,
+
+            usuarioId:
+                usuarioActual.usuarioId,
+
+            usuario:
+                usuarioActual.nombre,
+
+            productos:
+                productosSeleccionados
+
+        };
+
+
+        try {
+
+            const respuesta = await fetch(
+                API_URL + "/pedidos",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(pedido)
+                }
+            );
+
+
+            const datos =
+                await respuesta.json();
+
+
+            if (!respuesta.ok) {
+
+                document.getElementById(
+                    "mensajePedido"
+                ).textContent =
+                    datos.mensaje;
+
+                return;
+            }
+
+
+            document.getElementById(
+                "mensajePedido"
+            ).innerHTML = `
+
+                Pedido realizado correctamente.<br>
+
+                Código:
+                <strong>${datos.orderId}</strong>
+
+                <br>
+
+                Total:
+                <strong>
+                    ${formatearPrecio(datos.total)}
+                </strong>
+            `;
+
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            document.getElementById(
+                "mensajePedido"
+            ).textContent =
+                "Error al realizar el pedido";
+
+        }
+
+    }
+
+
+    // FORMATO CLP
+
+    function formatearPrecio(valor) {
+
+        return new Intl.NumberFormat(
+            "es-CL",
+            {
+                style: "currency",
+                currency: "CLP",
+                maximumFractionDigits: 0
+            }
+        ).format(valor);
+
+    }
+
+
+    function cerrarSesion() {
+
+        usuarioActual = null;
+
+        document.getElementById("tienda")
+            .style.display = "none";
+
+        document.getElementById("login")
+            .style.display = "block";
+
+        document.getElementById("usuario").value = "";
+
+        document.getElementById("password").value = "";
+
+        document.getElementById(
+            "mensajePedido"
+        ).textContent = "";
+
+    }
+
+
+    cargarProductos();
+
+</script>
+
+</body>
+</html>

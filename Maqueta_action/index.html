@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartShop Cloud - Demo</title>
+
+    <link rel="stylesheet" href="./styles.css?v=2">
+</head>
+
+<body>
+
+<header>
+    <h1>SmartShop Cloud</h1>
+    <p>Demo funcional para GitHub Pages</p>
+</header>
+
+
+<main class="contenedor">
+
+    <div class="nota">
+        Esta es una maqueta demostrativa.
+        Los pedidos se almacenan temporalmente y se eliminan al recargar la página.
+    </div>
+
+
+    <!-- LOGIN -->
+
+    <section id="login" class="login">
+
+        <h2>Iniciar sesión</h2>
+
+        <input
+            type="text"
+            id="usuario"
+            placeholder="Usuario"
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Contraseña"
+        >
+
+        <button
+            type="button"
+            onclick="iniciarSesion()">
+            Ingresar
+        </button>
+
+        <div id="mensajeLogin"></div>
+
+    </section>
+
+
+    <!-- TIENDA -->
+
+    <section id="tienda">
+
+        <div class="barra-usuario">
+
+            <h2 id="bienvenida"></h2>
+
+            <button
+                type="button"
+                onclick="cerrarSesion()">
+                Cerrar sesión
+            </button>
+
+        </div>
+
+
+        <h2>Productos</h2>
+
+        <div
+            id="catalogo"
+            class="catalogo">
+        </div>
+
+
+        <!-- RESUMEN -->
+
+        <section class="resumen">
+
+            <h2>Resumen del pedido</h2>
+
+            <p class="total-pedido">
+                Total:
+                <strong id="total">$0</strong>
+            </p>
+
+            <button
+                type="button"
+                onclick="realizarPedido()">
+                Realizar pedido
+            </button>
+
+            <div id="mensajePedido"></div>
+
+        </section>
+
+
+        <!-- MIS PEDIDOS -->
+
+        <section class="pedidos">
+
+            <h2>Mis pedidos</h2>
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaPedidos">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <p id="sinPedidos">
+                No existen pedidos registrados.
+            </p>
+
+        </section>
+
+    </section>
+
+</main>
+
+
+<script src="./app.js?v=2"></script>
+
+</body>
+</html>
