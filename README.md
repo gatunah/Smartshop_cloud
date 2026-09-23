@@ -258,7 +258,7 @@ Ejemplo de autenticación:
 POST /usuarios
 
 {
-    "usuario": "juan",
+    "usuario": "juanGatito",
     "password": "1234"
 }
 ```
